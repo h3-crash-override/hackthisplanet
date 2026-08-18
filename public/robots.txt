@@ -1,0 +1,5 @@
+User-agent: *
+Disallow: /
+
+# Security scanners will ignore this. Humans: this app is intentionally vulnerable.
+# See README for the full vulnerability list.

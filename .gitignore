@@ -1,0 +1,5 @@
+node_modules/
+.next/
+.vercel/
+*.log
+# Note: .env is intentionally committed (A05 - Security Misconfiguration demo)
