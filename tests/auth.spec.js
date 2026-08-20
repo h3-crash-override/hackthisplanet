@@ -9,8 +9,8 @@ test.describe('Login', () => {
     await page.fill('input[autocomplete="current-password"]', 'admin')
     await page.click('button[type="submit"]')
     await expect(page).toHaveURL('/')
-    // Nav should show the username dropdown
-    await expect(page.locator('.navbar').getByText('admin')).toBeVisible()
+    // Nav should show the username dropdown toggle
+    await expect(page.getByRole('button', { name: 'admin' })).toBeVisible()
   })
 
   test('token cookie is set after login', async ({ page }) => {
@@ -44,7 +44,7 @@ test.describe('Login', () => {
   test('logout clears session and redirects to login', async ({ page }) => {
     await loginAs(page, 'admin', 'admin')
     await page.goto('/')
-    await page.locator('.navbar').getByText('admin').click()
+    await page.getByRole('button', { name: 'admin' }).click()
     await page.getByRole('button', { name: 'Logout' }).click()
     await expect(page).toHaveURL('/login')
     // Token cookie should be expired/gone

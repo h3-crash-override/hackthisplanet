@@ -138,15 +138,23 @@ test.describe('A04 — Insecure Design', () => {
   })
 
   test('coupon SAVE10 can be applied unlimited times', async () => {
-    const aliceToken = await apiLogin('alice', 'password123')
-    const aliceId = JSON.parse(Buffer.from(aliceToken.split('.')[1], 'base64url').toString()).id
+    // Get token and user ID together from login response
+    const loginRes = await fetch(`${BASE_URL}/api/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: 'alice', password: 'password123' }),
+    })
+    const loginData = await loginRes.json()
+    const aliceToken = loginData.token
+    const aliceId = loginData.user.id
 
     // Seed cart with one product so the order can be placed
-    await fetch(`${BASE_URL}/api/cart/${aliceId}`, {
+    const cartRes = await fetch(`${BASE_URL}/api/cart/${aliceId}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${aliceToken}` },
       body: JSON.stringify({ product_id: 1, quantity: 1 }),
     })
+    expect(cartRes.ok).toBe(true)
 
     // Apply coupon — no rate-limit, can be used unlimited times (A04)
     const res = await fetch(`${BASE_URL}/api/orders/new`, {
