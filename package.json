@@ -5,18 +5,26 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "test": "playwright test",
+    "test:auth": "playwright test tests/auth.spec.js",
+    "test:shop": "playwright test tests/shop.spec.js",
+    "test:vuln": "playwright test tests/vulnerabilities.spec.js",
+    "test:headed": "playwright test --headed"
   },
   "dependencies": {
-    "next": "14.0.4",
-    "react": "18.2.0",
-    "react-dom": "18.2.0",
-    "pg": "8.11.3",
+    "axios": "1.6.2",
+    "cookie": "0.6.0",
     "jsonwebtoken": "9.0.2",
     "lodash": "4.17.4",
+    "next": "14.0.4",
     "node-serialize": "0.0.4",
-    "axios": "1.6.2",
-    "swagger-ui-react": "5.11.0",
-    "cookie": "0.6.0"
+    "pg": "8.11.3",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "swagger-ui-react": "5.11.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.62.1"
   }
 }
