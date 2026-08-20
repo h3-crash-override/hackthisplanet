@@ -54,9 +54,9 @@ export default async function handler(req, res) {
 
       // Store credit card in plaintext - A02
       const order = await db.query(
-        `INSERT INTO orders (user_id, total, credit_card, shipping_address, coupon_code)
-         VALUES ($1, $2, $3, $4, $5) RETURNING *`,
-        [user.id, total.toFixed(2), credit_card, shipping_address, coupon_code]
+        `INSERT INTO orders (user_id, total, credit_card, shipping_address)
+         VALUES ($1, $2, $3, $4) RETURNING *`,
+        [user.id, total.toFixed(2), credit_card, shipping_address]
       )
       const orderId = order.rows[0].id
 
