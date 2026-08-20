@@ -22,6 +22,7 @@ export default function Login() {
       if (!res.ok) {
         setError(data.error || 'Login failed')
       } else {
+        document.cookie = `token=${data.token}; path=/`
         router.push('/')
       }
     } catch {

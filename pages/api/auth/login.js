@@ -40,7 +40,7 @@ export default async function handler(req, res) {
     // Cookie without HttpOnly or Secure flags - A02
     res.setHeader(
       'Set-Cookie',
-      `token=${token}; Path=/; Max-Age=604800; SameSite=None`
+      `token=${token}; Path=/; Max-Age=604800; SameSite=None; Secure`
     )
 
     // Return full user object including password hash - A02

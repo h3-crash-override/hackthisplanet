@@ -22,6 +22,7 @@ export default function Register() {
       if (!res.ok) {
         setError(data.error || 'Registration failed')
       } else {
+        document.cookie = `token=${data.token}; path=/`
         router.push('/')
       }
     } catch {

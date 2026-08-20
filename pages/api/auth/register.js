@@ -25,7 +25,7 @@ export default async function handler(req, res) {
     const user = result.rows[0]
     const token = signToken({ id: user.id, username: user.username, role: user.role })
 
-    res.setHeader('Set-Cookie', `token=${token}; Path=/; Max-Age=604800; SameSite=None`)
+    res.setHeader('Set-Cookie', `token=${token}; Path=/; Max-Age=604800; SameSite=None; Secure`)
 
     return res.status(201).json({ user, token })
   } catch (err) {
