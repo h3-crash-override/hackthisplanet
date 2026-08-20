@@ -114,6 +114,9 @@ test.describe('A03 — Injection', () => {
       body: JSON.stringify({ product_id: 1, rating: 5, body: payload }),
     })
 
+    // The seeded XSS review fires an alert() — dismiss it automatically
+    page.on('dialog', dialog => dialog.dismiss())
+
     // Visit product page and verify the img tag was injected (not escaped)
     await page.goto('/products/1')
     const marker = page.locator('#xss-marker')
