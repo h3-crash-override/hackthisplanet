@@ -162,7 +162,8 @@ test.describe('A04 — Insecure Design', () => {
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${aliceToken}` },
       body: JSON.stringify({ coupon_code: 'SAVE10', credit_card: '4111111111111111', shipping_address: '1 Test St' }),
     })
-    expect([200, 201]).toContain(res.status)
+    const body = await res.json().catch(() => ({}))
+    expect([200, 201], `order failed ${res.status}: ${body.error}`).toContain(res.status)
   })
 })
 
