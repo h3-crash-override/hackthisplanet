@@ -63,6 +63,12 @@ export default async function handler(req, res) {
       (3, 4, 1, 299.99)
     `)
 
+    // Advance sequences past seeded IDs so new inserts don't conflict
+    await db.query(`SELECT setval(pg_get_serial_sequence('users',    'id'), MAX(id)) FROM users`)
+    await db.query(`SELECT setval(pg_get_serial_sequence('products',  'id'), MAX(id)) FROM products`)
+    await db.query(`SELECT setval(pg_get_serial_sequence('orders',    'id'), MAX(id)) FROM orders`)
+    await db.query(`SELECT setval(pg_get_serial_sequence('reviews',   'id'), MAX(id)) FROM reviews`)
+
     return res.status(200).json({ message: 'Database reset to initial seed state' })
   } catch (err) {
     return res.status(500).json({ error: err.message, stack: err.stack })
