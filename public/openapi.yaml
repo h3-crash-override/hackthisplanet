@@ -2,9 +2,7 @@ openapi: 3.0.0
 info:
   title: NexusStore API
   version: 1.0.0
-  description: >
-    NexusStore e-commerce REST API.
-    Default admin credentials: admin / admin.
+  description: NexusStore e-commerce REST API.
 servers:
   - url: /api
     description: NexusStore API
@@ -26,13 +24,11 @@ components:
           type: string
         password:
           type: string
-          description: MD5 hash (no salt)
         role:
           type: string
           enum: [user, admin]
         credit_card:
           type: string
-          description: Stored in plaintext
         address:
           type: string
     Product:
@@ -65,7 +61,6 @@ components:
           type: string
         credit_card:
           type: string
-          description: Stored in plaintext
         shipping_address:
           type: string
         coupon_code:
@@ -74,7 +69,7 @@ paths:
   /auth/login:
     post:
       tags: [Auth]
-      summary: Login (SQL injection on username field)
+      summary: Authenticate user
       requestBody:
         required: true
         content:
@@ -84,19 +79,19 @@ paths:
               properties:
                 username:
                   type: string
-                  example: "admin' OR '1'='1'--"
+                  example: admin
                 password:
                   type: string
                   example: admin
       responses:
         '200':
-          description: Returns JWT token and full user object (including password hash)
+          description: Returns JWT token and user object
         '401':
-          description: "User not found / Incorrect password (username enumeration)"
+          description: Invalid credentials
   /auth/register:
     post:
       tags: [Auth]
-      summary: Register new user (no password complexity enforced)
+      summary: Register new user
       requestBody:
         required: true
         content:
@@ -112,14 +107,14 @@ paths:
                   example: user@example.com
                 password:
                   type: string
-                  example: a
+                  example: password123
       responses:
         '201':
           description: User created
   /auth/reset:
     post:
       tags: [Auth]
-      summary: "Password reset (token = MD5(email) — fully predictable)"
+      summary: Request password reset
       requestBody:
         required: true
         content:
@@ -129,25 +124,24 @@ paths:
               properties:
                 email:
                   type: string
-                  example: alice@example.com
+                  example: user@example.com
                 token:
                   type: string
-                  description: MD5(email) — omit to receive token in response
                 new_password:
                   type: string
       responses:
         '200':
-          description: Token returned or password reset
+          description: Reset token sent or password updated
   /products:
     get:
       tags: [Products]
-      summary: List products (q param vulnerable to SQL injection)
+      summary: List products
       parameters:
         - name: q
           in: query
           schema:
             type: string
-            example: "' OR 1=1--"
+            example: headphones
         - name: category
           in: query
           schema:
@@ -158,21 +152,21 @@ paths:
   /products/{id}:
     get:
       tags: [Products]
-      summary: Get product by ID (id param vulnerable to SQL injection)
+      summary: Get product by ID
       parameters:
         - name: id
           in: path
           required: true
           schema:
             type: string
-            example: "1 UNION SELECT table_name,2,3,4,5,6,7 FROM information_schema.tables--"
+            example: "1"
       responses:
         '200':
           description: Product with reviews
   /reviews:
     post:
       tags: [Products]
-      summary: "Submit review (body not sanitized — stored XSS)"
+      summary: Submit a product review
       security:
         - bearerAuth: []
       requestBody:
@@ -190,14 +184,14 @@ paths:
                   example: 5
                 body:
                   type: string
-                  example: "<script>alert(document.cookie)</script>"
+                  example: "Great product, highly recommend!"
       responses:
         '201':
           description: Review created
   /cart/{userId}:
     get:
       tags: [Cart]
-      summary: "Get cart (IDOR — no ownership check)"
+      summary: Get cart for user
       security:
         - bearerAuth: []
       parameters:
@@ -208,10 +202,10 @@ paths:
             type: integer
       responses:
         '200':
-          description: Any user's cart
+          description: Cart contents
     put:
       tags: [Cart]
-      summary: "Update cart (IDOR + negative quantity exploit)"
+      summary: Update cart
       security:
         - bearerAuth: []
       parameters:
@@ -232,14 +226,14 @@ paths:
                   example: 1
                 quantity:
                   type: integer
-                  example: -100
+                  example: 2
       responses:
         '200':
           description: Cart updated
   /orders/{id}:
     get:
       tags: [Orders]
-      summary: "Get order (IDOR — exposes plaintext credit card)"
+      summary: Get order by ID
       security:
         - bearerAuth: []
       parameters:
@@ -250,7 +244,7 @@ paths:
             type: integer
       responses:
         '200':
-          description: Order including credit_card in plaintext
+          description: Order details
           content:
             application/json:
               schema:
@@ -258,7 +252,7 @@ paths:
   /users/{id}:
     get:
       tags: [Users]
-      summary: "Get user (IDOR — returns MD5 password hash + plaintext credit card)"
+      summary: Get user profile
       security:
         - bearerAuth: []
       parameters:
@@ -269,14 +263,14 @@ paths:
             type: integer
       responses:
         '200':
-          description: Full user row
+          description: User profile
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/User'
     put:
       tags: [Users]
-      summary: "Update user profile (IDOR)"
+      summary: Update user profile
       security:
         - bearerAuth: []
       parameters:
@@ -302,22 +296,21 @@ paths:
   /admin/import-image:
     post:
       tags: [Admin]
-      summary: "Import product image from URL (SSRF)"
-      description: "Fetches any URL server-side. Try: http://169.254.169.254/latest/meta-data/"
+      summary: Import product image from URL
       parameters:
         - name: url
           in: query
           required: true
           schema:
             type: string
-            example: "http://169.254.169.254/latest/meta-data/"
+            example: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400"
       responses:
         '200':
-          description: Response content from fetched URL
+          description: Image imported
   /admin/plugins:
     post:
       tags: [Admin]
-      summary: "Install plugin (RCE via eval + prototype pollution via lodash.merge)"
+      summary: Install plugin
       requestBody:
         required: true
         content:
@@ -327,11 +320,10 @@ paths:
               properties:
                 plugin_url:
                   type: string
-                  description: URL of JavaScript to fetch and eval()
+                  example: "https://plugins.nexusstore.io/analytics/latest.js"
                 settings:
                   type: string
-                  description: "JSON merged with _.merge — try {\"__proto__\":{\"isAdmin\":true}}"
-                  example: '{"__proto__":{"isAdmin":true}}'
+                  example: '{"theme":"dark"}'
       responses:
         '200':
           description: Plugin installed
@@ -343,10 +335,10 @@ paths:
         - bearerAuth: []
       responses:
         '200':
-          description: List of registered webhooks
+          description: Registered webhooks
     post:
       tags: [Webhooks]
-      summary: "Register webhook (SSRF — server fetches URL on every order)"
+      summary: Register webhook
       security:
         - bearerAuth: []
       requestBody:
@@ -358,35 +350,34 @@ paths:
               properties:
                 url:
                   type: string
-                  example: "http://169.254.169.254/latest/meta-data/"
+                  example: "https://myapp.example.com/webhooks/orders"
       responses:
         '201':
-          description: Webhook registered and immediately triggered
+          description: Webhook registered
   /uploads:
     get:
       tags: [Admin]
-      summary: "Directory listing of /uploads (no auth required)"
+      summary: List uploaded files
       responses:
         '200':
-          description: List of files in uploads directory
+          description: File listing
   /debug/info:
     get:
       tags: [Admin]
-      summary: "Debug info — exposes DATABASE_URL, JWT_SECRET, env vars"
+      summary: Application health and configuration
       responses:
         '200':
-          description: System configuration and environment variables
+          description: System information
   /reset:
     post:
       tags: [Admin]
-      summary: Reset database to seed state
+      summary: Reset database
       parameters:
         - name: key
           in: query
           required: true
           schema:
             type: string
-            example: resetme123
       responses:
         '200':
           description: Database reset
