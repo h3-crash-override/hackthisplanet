@@ -5,6 +5,10 @@ const nextConfig = {
   images: {
     domains: ['images.unsplash.com'],
   },
+  // Expose fake .env via rewrite — Next.js 14 blocks dotfiles from public/ - A05
+  async rewrites() {
+    return [{ source: '/.env', destination: '/api/env-file' }]
+  },
   // Intentionally permissive headers - A05
   async headers() {
     return [
